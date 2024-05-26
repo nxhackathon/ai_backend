@@ -81,11 +81,12 @@ python3 flask_anal_server.py
 
 The analysis server will start running on port 8888.
 It is hosted on AWS as well. The link is: http://ec2-3-142-69-191.us-east-2.compute.amazonaws.com:8888
+Change it accordingly in the postprocessor-python-cereal/postprocessor-python-cereal.py and postprocessor-python-fish/postprocessor-python-fish.py files.
 
 
 ## Build the Project with make
 
-1. Run the following command in the terminal:
+Run the following command in the terminal:
 
 ```bash
 make
@@ -107,4 +108,7 @@ Check if the files are copied successfully:
 ```bash
 ls -la /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
 ```
+
+
+
 
