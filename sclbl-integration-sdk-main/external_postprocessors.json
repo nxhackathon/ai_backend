@@ -1,0 +1,17 @@
+{
+    "externalPostprocessors": [
+        {
+            "Name":"Example-Postprocessor-cereal",
+            "Command":"/opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors/postprocessor-python-cereal",
+            "SocketPath":"/tmp/example-postprocessor-cereal.sock",
+            "ReceiveInputTensor": 1
+        },
+        {
+            "Name":"Example-Postprocessor-fish",
+            "Command":"/opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors/postprocessor-python-fish",
+            "SocketPath":"/tmp/example-postprocessor-fish.sock",
+            "ReceiveInputTensor": 2
+        }
+
+    ]
+}

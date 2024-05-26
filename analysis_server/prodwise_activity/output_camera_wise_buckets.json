@@ -1,0 +1,41 @@
+{
+    "Cereals Section": [
+        [
+            "cereal_boxes",
+            "oats_tins",
+            "toilet_paper"
+        ],
+        [
+            "cereal_boxes",
+            "oats_tins"
+        ],
+        [
+            "cereal_boxes",
+            "cereal_tins",
+            "oats_tins"
+        ],
+        [
+            "cereal_boxes",
+            "oats_tins",
+            "peppermints"
+        ],
+        [
+            "biscuits",
+            "cereal_boxes",
+            "oats_tins"
+        ]
+    ],
+    "Fish Section": [
+        [
+            "ragu_sauce",
+            "tabasco_sauce",
+            "tuna"
+        ],
+        [
+            "ragu_sauce",
+            "tuna"
+        ]
+    ],
+    "Shaving Section": [],
+    "Wine Section": []
+}
