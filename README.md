@@ -83,3 +83,28 @@ The analysis server will start running on port 8888.
 It is hosted on AWS as well. The link is: http://ec2-3-142-69-191.us-east-2.compute.amazonaws.com:8888
 
 
+## Build the Project with make
+
+1. Run the following command in the terminal:
+
+```bash
+make
+cmake .
+
+cp postprocessor-python-cereal/postprocessor-python-cereal /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
+cp external_postprocessors.json /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
+chmod 777 /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors/postprocessor-python-cereal
+
+cp postprocessor-python-fish/postprocessor-python-fish /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
+cp external_postprocessors.json /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
+chmod 777 /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors/postprocessor-python-fish
+
+chmod 777 /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors/external_postprocessors.json
+```
+
+Check if the files are copied successfully:
+
+```bash
+ls -la /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
+```
+
