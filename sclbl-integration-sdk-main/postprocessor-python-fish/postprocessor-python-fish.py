@@ -68,7 +68,7 @@ def send_post_request(bboxes,endpoint="detection"):
     # This function assumes that the API is up and running
     # jsonify bboxes and send in post resuest body
     bboxes = json.dumps(bboxes)
-    endpoint = f"http://192.168.0.114:8888/{endpoint}?postprocessorid={POST_PROCESSOR_ID}"
+    endpoint = f"http://192.168.0.114:8888/{endpoint}?postprocessorid={POST_PROCESSOR_ID}"  # ATTENTION: Change the IP address to the AWS EC2 instance IP address for Analysis Server
     try:
         response = requests.post(endpoint, json=bboxes)
         response.raise_for_status()  # Raises a HTTPError if the response was unsuccessful
