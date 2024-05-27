@@ -109,6 +109,14 @@ Check if the files are copied successfully:
 ls -la /opt/networkoptix-metavms/mediaserver/bin/plugins/nxai_plugin/nxai_manager/postprocessors
 ```
 
+### PostProcessor Path for Cereal Section Camera Feeds
+
+sclbl-integration-sdk-main/postprocessor-python-cereal/postprocessor-python-cereal.py
+
+
+### PostProcessor Path for Fish Section Camera Feeds
+
+sclbl-integration-sdk-main/postprocessor-python-fish/postprocessor-python-fish.py
 
 ## The UI is hosted on Vercel (To show the analysis results):
 
