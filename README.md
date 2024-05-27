@@ -1,5 +1,7 @@
 # ShopkAIper : Nx EVOS: Building Enterprise Scale Video Applications
 
+## Video Link: https://youtu.be/sgNIhUhNZ1E?si=KngDqbR5bhfv_7Mw
+
 ### Team Members:
 
 1. Anannyo Dey
