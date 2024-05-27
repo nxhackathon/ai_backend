@@ -1,5 +1,6 @@
 # Flask server to recieve the detection streams 
 # Run at 192.168.0.108(localhost) port 8888
+# It is hosted at https://y07iw7clhb.execute-api.ap-southeast-2.amazonaws.com
 
 from flask import Flask, request, Response
 import json
@@ -12,6 +13,10 @@ app = Flask(__name__)
 
 # to handle f"http://192.168.0.114:8888/detection?postprocessorid={POST_PROCESSOR_ID}"
 
+
+# Json Handler class to keep track of the data
+# Recieves data at a gap of 2 seconds
+# Stores a buffer of data for 20 seconds and writes to the file
 class JSONHandler:
     def __init__(self, gap=10, filename='data.json'):
         self.camwise_data = {}
@@ -48,11 +53,8 @@ class JSONHandler:
                     json.dump(self.camwise_data, f, indent=4)
                 print("File written successfully at ", self.filename)
 
-        # # append ]]]}]}} at the end of the file
-        # with open(self.filename, 'a') as f:
-        #     f.write("]}]}]}")
 
-
+# JSON_HANDLER Object per camera          
 JSON_HANDLERS = {
     # 'default': JSONHandler(),
     'Cereals Section': JSONHandler(gap=10, filename='prodwise_activity/CerealsSection.json'),
@@ -63,6 +65,8 @@ JSON_HANDLERS = {
 ALL_CAMERAS = list(JSON_HANDLERS.keys())
 ALL_CAMERA_PATHS = {key:value.filename for key,value in JSON_HANDLERS.items()}
 
+
+# Temporary data for demo
 TEMP_CAMERAS = ['Cereals Section', 'Fish Section', 'Shaving Section', 'Wine Section']
 TEMP_ALL_CAMERA_PATHS = {
     'Cereals Section': 'prodwise_activity/CerealsSection.json',
@@ -73,19 +77,22 @@ TEMP_ALL_CAMERA_PATHS = {
 
 
 
-
+# Utility class to produce camera_wise_interaction_window and camera_wise_buckets
+# This class is used to analyze the interaction between hand movements and product groups
+# It takes the hand feed data and product group data as input
 class ProductGrpMapping:
     def __init__(self, productgroup_wise_keypoints_bbox_output):
         self.product_grp_to_timeofinteraction = defaultdict(list)
         self.productgroup_wise_keypoints_bbox_output = productgroup_wise_keypoints_bbox_output
         
+    # Check if the hand is within the product group
     def checkwithin(self, hand_xy, productgroup_xy):
-        # hand_xy = hand_xy[0]* 480 / 640 , hand_xy[1]* 848 / 640
         productgroup_xy = productgroup_xy[0]* 640 /480  , productgroup_xy[1]* 848 / 640, productgroup_xy[2]* 640 /480, productgroup_xy[3]* 848 / 640
         if hand_xy[0] > productgroup_xy[0] and hand_xy[0] < productgroup_xy[2] and hand_xy[1] > productgroup_xy[1] and hand_xy[1] < productgroup_xy[3]:
             return True
         return False
 
+    # Analyze the hand feed
     def process(self,hand_feed):
         """
         hand_feed = {
@@ -112,12 +119,13 @@ class ProductGrpMapping:
             # sort
             self.product_grp_to_timeofinteraction[product_grp].sort()
 
+    # Analyze the batch of hand feeds
     def process_all(self, hand_feed_list):
         for hand_feed in hand_feed_list:
             self.process(hand_feed)
 
     def analyze(self,timedelta=24,window_wise_count_threshold=1):
-        # I want to take time window of timedelta=24 seconds starting from the minimum time of interaction wrt all product groups
+        # Taking time window of timedelta=24 seconds starting from the minimum time of interaction wrt all product groups
         # At each window, group the products which falls under 24 seconds window for each product group
 
         # get the minimum time of interaction wrt all product groups
@@ -167,6 +175,10 @@ class ProductGrpMapping:
         return self.product_grp_to_timeofinteraction
     
 
+# Wrapper function to analyze the interaction
+# It create two main objects:
+# 1. camera_wise_interaction_window: Mapping of camera to product group to window wise interaction count along with the time of first interaction (Dwell time/Interaction time per product group)
+# 2. camera_wise_buckets: Mapping of camera to list of list of products which are in the bucket
 def anlayze_interaction(data):
     camera_wise_interaction_window = {}
     camera_wise_buckets = {}
@@ -205,6 +217,7 @@ def anlayze_interaction(data):
 
 
 
+# Anomaly detection, Utility functions
 def anomaly_detect(data, threshold=1.2):
     frequencies = [int(item[0]) for item in data]
     mean = np.mean(frequencies)
@@ -219,6 +232,8 @@ def anomaly_detect(data, threshold=1.2):
     
     return anomalies
 
+
+# Theft detection
 def theft(data):
     all_anomalies = {}
 
@@ -236,10 +251,8 @@ def theft(data):
                             break
                     else:
                         cam_wise_data.append([freq, timestamp])
-        # print(cam_wise_data)
         if len(cam_wise_data) > 0:
             anomalies = anomaly_detect(cam_wise_data)
-            # print(anomalies)
             all_anomalies[cam] = anomalies
     
     # Convert anomalies to json
@@ -251,8 +264,11 @@ def theft(data):
 
 
 
+##############      ##############      ##############    ##############
 
+                                # Endpoints #
 
+##############      ##############    ##############    ##############
 
 
 
@@ -297,11 +313,7 @@ def interaction():
     json_data = json.loads(data)
     POST_PROCESSOR_ID = request.args.get('postprocessorid')
     print('-------- interaction -------- from ',POST_PROCESSOR_ID)
-    # print('-------- Start Data --------')
-    # print(json_data)
-    # print('--------- End Data ---------')
-
-    # JSON_HANDLERS[json_data['ProductType']].update_json(json_data, json_data['ProductType'])    # Temporarily disabled
+    JSON_HANDLERS[json_data['ProductType']].update_json(json_data, json_data['ProductType'])    # Temporarily disabled
     return Response(status=200)
 
 if __name__ == '__main__':
