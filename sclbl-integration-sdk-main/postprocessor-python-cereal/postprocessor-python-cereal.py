@@ -11,13 +11,16 @@ import numpy as np
 import cv2
 import communication_utils
 
+# This post processor is used to handle feeds from the Cereal Section Camera
 
-POST_PROCESSOR_ID = 0
-# Add the sclbl-utilities python utilities
+
+POST_PROCESSOR_ID = 0 # This is the ID of the postprocessor used to identify the cameras in the Analysis Server
 script_location = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_location, "../sclbl-utilities/python-utilities"))
 Postprocessor_Name = "Python-Postprocessor-cereal"
 Postprocessor_Socket_Path = "/tmp/python-postprocessor-cereal.sock"
+
+# Mapping of class indices to class names
 categories = { 
     0: "person", 1: "bicycle", 2: "car", 3: "motorbike", 4: "aeroplane", 5: "bus", 6: "train", 7: "truck", 8: "boat", 9: "traffic light", 
     10: "fire hydrant", 11: "stop sign", 12: "parking meter", 13: "bench", 14: "bird", 15: "cat", 16: "dog", 17: "horse", 18: "sheep", 19: "cow", 
@@ -30,6 +33,7 @@ categories = {
      100: "cereal_boxes", 101: "oats_tins", 102: "peppermints", 103: "biscuits", 104: "sugarfree_cookies", 105: "cereal_tins", 106: "toilet_paper" 
      }
 
+# Product Catalog Provided by Admin
 PROD_TYPE = "Cereals Section"
 prod_catalog ={
     PROD_TYPE:
@@ -37,7 +41,6 @@ prod_catalog ={
      [10.0, 177.0, 452.0, 247.0, 1.0, 100, 60.0, 253.0, 444.0, 291.0, 1.0, 101, 63.0, 296.0, 437.0, 330.0, 1.0, 102, 62.5, 334.0, 433.5, 374.0, 1.0, 103, 71.0, 376.0, 431.0, 416.0, 1.0, 104, 80.5, 420.5, 421.5, 469.5, 1.0, 105, 6.5, 96.5, 457.5, 161.5, 1.0, 106]
      },
 }
-
 
 def convert_prod_catalog_to_dict(data):
     class_mapping = list(data.keys())[0]
@@ -57,13 +60,17 @@ def convert_prod_catalog_to_dict(data):
 
     return result
 
+
+# Convert tuple to bytes
 def tuple_to_bytes(t):
     print("python3 || ******** Tuple to bytes: ", t)
     return struct.pack('f' * len(t), *t)
 
+# Convert bytes to tuple
 def bytes_to_tuple(b):
     return struct.unpack('f' * (len(b) // 4), b)
 
+# Send a post request to the Analysis Server
 def send_post_request(bboxes,endpoint="detection"):
     # This function assumes that the API is up and running
     # jsonify bboxes and send in post resuest body
@@ -76,6 +83,10 @@ def send_post_request(bboxes,endpoint="detection"):
         print(f"python2 | Postprocessor -  An error occurred: {err}")
 
 
+# Wrapper class to handle post requests
+# Keeps track of the last timestamp when a post request was sent
+# Sends a post request only if the time gap is greater than the specified gap
+# Gap = 2 seconds by default
 class PostRequestHandler:
     def __init__(self,gap=2) -> None:
         self.last_timestamp = None
@@ -110,6 +121,9 @@ def decode_binary_to_array(binary_data, shape):
     return array_data
 
 
+# Converts the output of Yolov8 model to bounding boxes
+# Uses Confidence threshold and NMS threshold to filter out the bounding boxes
+# Returns a list of bounding boxes along with their confidence scores and class IDs
 def get_bounding_boxes(output, confidence_threshold=0.5, nms_threshold=0.4, num_classes=1):
     # Assume the output shape is (1, 84, 8400)    
     # Reshape the output if necessary
@@ -153,6 +167,11 @@ def get_bounding_boxes(output, confidence_threshold=0.5, nms_threshold=0.4, num_
     return tuple(final_boxes)
 
 
+# Converts the output of Yolov8-Pose model to bounding boxes
+# Uses Confidence threshold and NMS threshold to filter out the bounding boxes
+# Recives the shape of the output tensor: (1, 56, 8400)
+# Returns a list of bounding boxes along with their confidence scores and class IDs for person detection
+# Returns a list of bounding boxes along with their confidence scores and class IDs for body part detection
 def get_bbox_from_pose_output(output,person_conf_thresh=0.5,person_nms_thresh=0.5, body_part_conf_thresh=0.0):
     """
     output : (1,56,8400)
@@ -259,6 +278,13 @@ def get_bbox_from_pose_output(output,person_conf_thresh=0.5,person_nms_thresh=0.
     return person_output, person_wise_keypoints_bbox_output,person_wise_hand_keypoints_bbox_output, {class_label_map:serlized_person_wise_hand_keypoints_bbox_output+person_output_serlized}
 
 
+
+
+
+
+
+
+
 def main():
     # Start socket listener to receive messages from NXAI runtime
     post_request_handler = PostRequestHandler()
@@ -272,37 +298,25 @@ def main():
             # Request timed out. Continue waiting
             continue
 
-        # print("python3 || EXAMPLE PLUGIN: Received input message: ", input_message)
-
-        # Parse input message
         input_object = communication_utils.parseInferenceResults(input_message)
-
-        print(f"python3 || {input_object.keys()}")
-        print(f"python3 || input_object['Outputs'] keys: {input_object['Outputs'].keys()}")
-        print(f"python3 || Len Outputs[output0]: ##{len(input_object['Outputs']['output0'])}##")
-        print(f"python3 || OutputRanks: {input_object['OutputRanks']}")
-        print(f"python3 || OutputShapes: {input_object['OutputShapes']}")
-
-        
+        # Deserialize the binary data to a numpy array
         decoded_data = decode_binary_to_array(input_object['Outputs']['output0'], input_object['OutputShapes'])
-        print(f"python3 || Decoded data: {decoded_data}")
-        print(f"python3 || Decoded data: {decoded_data.shape}")
+
 
         # get_bounding_boxes
         person_output, person_wise_keypoints_bbox_output,person_wise_hand_keypoints_bbox_output,serialized_person_wise_keypoints_bbox_output = get_bbox_from_pose_output(decoded_data,person_conf_thresh=0.5,person_nms_thresh=0.5, body_part_conf_thresh=0.0)  
-
-        print(f"python3 || Final person_wise_hand_keypoints_bbox_output: {person_wise_hand_keypoints_bbox_output}")
         encoded_boxes = tuple_to_bytes(tuple(serialized_person_wise_keypoints_bbox_output[list(serialized_person_wise_keypoints_bbox_output.keys())[0]]))
 
-        # print("python2 | Packing ", input_object)
-
+        # Get the product catalog key
         prod_catalog_key = list(prod_catalog[PROD_TYPE].keys())[0]
         prod_catalog_spec = prod_catalog[PROD_TYPE][prod_catalog_key]
+
+        # Convert the product catalog to bytes
         encoded_prod_catalog_spec = tuple_to_bytes(prod_catalog_spec)
 
+    
         output_object = {
             "Outputs": {
-                # "bboxes-format:xyxysc;0:person;1:bicycle;2:car;3:motorbike;4:aeroplane;5:bus;6:train;7:truck;8:boat;9:traffic light;10:fire hydrant;11:stop sign;12:parking meter;13:bench;14:bird;15:cat;16:dog;17:horse;18:sheep;19:cow;20:elephant;21:bear;22:zebra;23:giraffe;24:backpack;25:umbrella;26:handbag;27:tie;28:suitcase;29:frisbee;30:skis;31:snowboard;32:sports ball;33:kite;34:baseball bat;35:baseball glove;36:skateboard;37:surfboard;38:tennis racket;39:bottle;40:wine glass;41:cup;42:fork;43:knife;44:spoon;45:bowl;46:banana;47:apple;48:sandwich;49:orange;50:broccoli;51:carrot;52:hot dog;53:pizza;54:donut;55:cake;56:chair;57:sofa;58:potted plant;59:bed;60:dining table;61:toilet;62:tv monitor;63:laptop;64:mouse;65:remote;66:keyboard;67:cell phone;68:microwave;69:oven;70:toaster;71:sink;72:refrigerator;73:book;74:clock;75:vase;76:scissors;77:teddy bear;78:hair drier;79:toothbrush": encoded_boxes
                 "bboxes-format:xyxysc;"+';'.join([f"{k}:{v}" for k,v in categories.items()])+";"+list(serialized_person_wise_keypoints_bbox_output.keys())[0]+";"+prod_catalog_key:
                 encoded_boxes+encoded_prod_catalog_spec
             },
@@ -312,15 +326,13 @@ def main():
             'OutputDataTypes': [1]
         }
 
+        # Send the output to the Analysis Server
         post_request_handler.handle_post_request({
             "ProductType": PROD_TYPE,
             "person_wise_hand_keypoints_bbox_output": person_wise_hand_keypoints_bbox_output,
             "productgroup_wise_keypoints_bbox_output": convert_prod_catalog_to_dict(prod_catalog[PROD_TYPE])
         }
             ,endpoint="interaction")
-
-
-        print(f"python3 || Output object: {output_object}")
 
         output_message = communication_utils.writeInferenceResults(output_object)
         # Send message back to runtime
