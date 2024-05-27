@@ -80,7 +80,7 @@ python3 flask_anal_server.py
 ```
 
 The analysis server will start running on port 8888.
-It is hosted on AWS as well. The link is: http://ec2-3-142-69-191.us-east-2.compute.amazonaws.com:8888
+It is hosted on AWS as well. The link is: [Analysis Server Backend](https://y07iw7clhb.execute-api.ap-southeast-2.amazonaws.com/)
 Change it accordingly in the sclbl-integration-sdk-main/postprocessor-python-cereal/postprocessor-python-cereal.py and sclbl-integration-sdk-main/postprocessor-python-fish/postprocessor-python-fish.py files.
 
 
