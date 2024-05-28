@@ -1,6 +1,6 @@
 # ShopkAIper : Nx EVOS: Building Enterprise Scale Video Applications
 
-## Video Link: [ShopkAIper Demo](https://youtu.be/nNh7WxDYlZQ)
+## Video Link: [ShopkAIper YT Demo](https://youtu.be/MjlNID3WuxI)
 
 ### Team Members:
 
