@@ -166,3 +166,9 @@ Product group-wise dwell time is analyzed as time series data. We then search fo
 ![Dwell Time Analysis](images/crl.png)
 
 Dwell time is calculated for each product category by analyzing the time spent by customers in front of each product group. This helps in understanding customer preferences and product placement strategies.
+
+## Frequent Item Set Generation
+
+![Frequent Item Set Generation](images/freq.png)
+
+Product buckets are created for each user based on purchased product combinations. In 30-second windows, all interactions within a product section form a "Bucket" added to the frequently purchased items dataset. This dataset is then fed into the Apriori algorithm, which generates association rules from sets of products to products. This helps improve product placement strategies.
